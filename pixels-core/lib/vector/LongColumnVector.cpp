@@ -110,6 +110,11 @@ void LongColumnVector::add(int value) {
     isNull[index] = false;
 }
 
+/*扩展列的存储空间，以便能容纳更多的数据。
+此函数根据当前存储的 length（列的当前容量）与需要的 size（目标容量）来决定是否需要分配更多内存，
+并在必要时执行内存扩展。
+*/
+
 void LongColumnVector::ensureSize(uint64_t size, bool preserveData) {
     ColumnVector::ensureSize(size, preserveData);
     if (length < size) {
