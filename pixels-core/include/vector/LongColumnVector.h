@@ -8,7 +8,7 @@
 #include "vector/ColumnVector.h"
 #include "vector/VectorizedRowBatch.h"
 
-class LongColumnVector: public ColumnVector {
+class LongColumnVector: public ColumnVector {   //实现了long columnVector以供参考
 public:
     long * longVector;
 	long * intVector;

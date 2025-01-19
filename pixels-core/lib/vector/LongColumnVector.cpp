@@ -64,6 +64,11 @@ void * LongColumnVector::current() {
     }
 }
 
+
+//这些 add 函数属于 LongColumnVector 类，它们用于向列中添加不同类型的值。
+//类中可能会存储不同类型的数据（例如：bool, int, int64_t, string 等），
+//而这些 add 方法实现了根据输入数据类型将数据添加到相应的存储容器中的功能。
+
 void LongColumnVector::add(std::string &value) {
     std::transform(value.begin(), value.end(), value.begin(), ::tolower);
     if (value == "true") {
