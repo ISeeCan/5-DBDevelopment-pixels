@@ -92,7 +92,7 @@ void LongColumnVector::add(int64_t value) {
         ensureSize(writeIndex * 2, true);
     }
     int index = writeIndex++;
-    if(isLong) {
+    if(isLong) {            //为啥只有他进行了额外设置
         longVector[index] = value;
     } else {
         intVector[index] = value;

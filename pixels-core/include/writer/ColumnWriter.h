@@ -37,6 +37,7 @@
 #include "stats/StatsRecorder.h"
 
 
+//这是各种 writer的基类
 class ColumnWriter{
 public:
   virtual ~ColumnWriter() = default;
@@ -46,6 +47,8 @@ public:
      * Write values from input buffers
      *
      */
+
+    //最终PixelsWriterImpl调用到了这里的write函数
     virtual int write(std::shared_ptr<ColumnVector> columnVector,int length )=0;
 
     virtual std::vector<uint8_t> getColumnChunkContent() const;

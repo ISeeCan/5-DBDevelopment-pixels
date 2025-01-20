@@ -32,6 +32,7 @@ ColumnWriter(type, writerOption), curPixelVector(pixelStride)
     }
 }
 
+//已经实现好的一个示例
 int IntegerColumnWriter::write(std::shared_ptr<ColumnVector> vector, int size)
 {
     std::cout<<"In IntegerColumnWriter"<<std::endl;

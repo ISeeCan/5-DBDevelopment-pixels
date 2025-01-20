@@ -44,6 +44,7 @@ PixelsWriterImpl::PixelsWriterImpl(std::shared_ptr<TypeDescription> schema, int 
                                    const std::string &targetFilePath, int blockSize, bool blockPadding,
                                    EncodingLevel encodingLevel, bool nullsPadding, bool partitioned,int compressionBlockSize)
                                    : schema(schema), rowGroupSize(rowGroupSize), compressionBlockSize(compressionBlockSize) {
+
     this->columnWriterOption = std::make_shared<PixelsWriterOption>()->setPixelsStride(pixelsStride)->setEncodingLevel(encodingLevel)->setNullsPadding(nullsPadding);
     this->physicalWriter = PhysicalWriterUtil::newPhysicalWriter(targetFilePath, blockSize, blockPadding, false);
     this->compressionKind = pixels::proto::CompressionKind::NONE;
@@ -56,10 +57,13 @@ PixelsWriterImpl::PixelsWriterImpl(std::shared_ptr<TypeDescription> schema, int 
     }
 }
 
+// addRowBatch一次将一个RowBatch写入文件
 bool PixelsWriterImpl::addRowBatch(std::shared_ptr<VectorizedRowBatch> rowBatch) {
     std::cout << "PixelsWriterImpl::addRowBatch" << std::endl;
     curRowGroupDataLength=0;
     curRowGroupNumOfRows+=rowBatch->count();
+
+    //调用writeColumnVectors
     writeColumnVectors(rowBatch->cols,rowBatch->count());
 
     if(curRowGroupDataLength>=rowGroupSize){
@@ -70,8 +74,11 @@ bool PixelsWriterImpl::addRowBatch(std::shared_ptr<VectorizedRowBatch> rowBatch)
     return true;
 }
 
+//将 RowBatch 中的 ColumnVector 的数据 
+//(就是 任务一 add 加入的数据)写入文件,随后判断是否达到一个rowGroup大小
 void PixelsWriterImpl::writeColumnVectors(std::vector<std::shared_ptr<ColumnVector>>& columnVectors, int rowBatchSize)
 {
+    //接受一个 ColumnVector 的共享指针向量和一个整数 rowBatchSize，表示每次写入的行数
     std::vector<std::future<void>> futures;
     std::atomic<int> dataLength(0);
     int commonColumnLength = columnVectors.size() ;
@@ -79,13 +86,17 @@ void PixelsWriterImpl::writeColumnVectors(std::vector<std::shared_ptr<ColumnVect
     // Writing regular columns
     for (int i = 0; i < commonColumnLength; ++i) {
        // dataLength += columnWriters[i]->write(columnVectors[i], rowBatchSize);
+       //创建一个异步任务来写入列向量，使用 std::launch::async 确保任务在新线程中执行。
        futures.emplace_back(std::async(std::launch::async, [this, columnVectors, rowBatchSize, i, &dataLength]() {
            try {
+            //调用 columnWriters[i]->write 方法，写入数据并更新 dataLength。
                dataLength += columnWriters[i]->write(columnVectors[i], rowBatchSize);
            } catch (const std::exception& e) {
                throw std::runtime_error("failed to write column vector: " + std::string(e.what()));
            }
        }));
+
+       //如果判断已经达到了一个文件中最大行数，则重新初始化一个PixelsWriter实例，写入一个新的文件
     }
 
 
@@ -94,6 +105,7 @@ void PixelsWriterImpl::writeColumnVectors(std::vector<std::shared_ptr<ColumnVect
         future.get();  // Blocking until all tasks are completed
     }
 
+    //将 dataLength 的值添加到 curRowGroupDataLength 中，模拟行组数据长度的累积。
     // Simulate curRowGroupDataLength accumulation
     curRowGroupDataLength += dataLength.load();
     std::cout << "Data length written: " << curRowGroupDataLength << std::endl;
