@@ -1,3 +1,7 @@
+#ifndef mystr2day
+#define mystr2day
+
+
 #include <iostream>
 #include <string>
 #include <chrono>
@@ -61,3 +65,5 @@ long stringTimestampToMicros(const std::string& timestamp) {
     long seconds = std::chrono::duration_cast<std::chrono::seconds>(tp.time_since_epoch()).count();
     return seconds * MICROS_PER_SEC + microseconds;
 }
+
+#endif
