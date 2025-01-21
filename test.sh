@@ -1,0 +1,1 @@
+./build/release/extension/pixels/pixels-cli/pixels-cli

@@ -52,6 +52,7 @@ void LoadExecutor::execute(const bpo::variables_map& ns, const std::string& comm
     }
 
     auto startTime = std::chrono::system_clock::now();
+    //调用了load类的另外一个函数
     if (startConsumers(inputFiles, parameters, loadedFiles)) {
         std::cout << command << " is successful" << std::endl;
     } else {
@@ -63,9 +64,12 @@ void LoadExecutor::execute(const bpo::variables_map& ns, const std::string& comm
                 << elapsedSeconds.count() << " seconds." << std::endl;
 }
 
+//创建 PixelsConsumer 类，并执行该类的run函数
 bool LoadExecutor::startConsumers(const std::vector<std::string> &inputFiles, Parameters parameters,
                                   const std::vector<std::string> &loadedFiles) {
     PixelsConsumer consumer(inputFiles, parameters, loadedFiles);
+
+    //又run了一下
     consumer.run();
     return true;
 }

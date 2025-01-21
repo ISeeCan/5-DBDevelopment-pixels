@@ -18,6 +18,54 @@
  * Created at: 05/03/2022
  * Author: hank
  */
+// 我添加了
+#include <algorithm>
+#include <iostream>
+#include <vector>
+#include <cmath>
+#include <sstream>
+#include <stdexcept>
+#include <iomanip> 
+void DecimalColumnVector::add(std::string &val) {
+    if (writeIndex >= length) {
+            ensureSize(writeIndex * 2, true);
+        }
+
+    double dval = parseDecimal(val);
+    vector[writeIndex] = static_cast<long>(dval);
+    isNull[writeIndex] = false;
+    writeIndex++;
+}
+
+double DecimalColumnVector::parseDecimal(const std::string &val) {
+        size_t pos = 0;
+        double result = std::stod(val, &pos);
+        long it = (long)std::round(result * std::pow(10, scale));
+        return double(it);
+}
+
+void DecimalColumnVector::add(float value) {
+    add(static_cast<double>(value));  // 将 float 转换为 double 然后调用 add(double)
+}
+
+void DecimalColumnVector::add(double value) {
+    if (writeIndex >= getLength()) {
+        ensureSize(writeIndex * 2, true);  // 扩展空间
+    }
+
+    // 将输入值舍入到所需精度
+    double roundedValue = round(value * pow(10, scale)) / pow(10, scale);
+
+    // 检查精度是否超出
+    if (std::numeric_limits<double>::digits10 < precision) {
+        throw std::invalid_argument("value exceeds the allowed precision " + std::to_string(precision));
+    }
+
+    int index = writeIndex++;
+    vector[index] = static_cast<long>(roundedValue);  // 将舍入后的值转换为 long 类型
+    isNull[index] = false;
+}
+
 
 DecimalColumnVector::DecimalColumnVector(int precision, int scale, bool encoding): ColumnVector(VectorizedRowBatch::DEFAULT_SIZE, encoding) {
     DecimalColumnVector(VectorizedRowBatch::DEFAULT_SIZE, precision, scale, encoding);

@@ -2,6 +2,9 @@
 // Created by liyu on 3/17/23.
 //
 
+//Exemple Implement
+
+
 #include "vector/LongColumnVector.h"
 #include <algorithm>
 
@@ -64,6 +67,11 @@ void * LongColumnVector::current() {
     }
 }
 
+
+//这些 add 函数属于 LongColumnVector 类，它们用于向列中添加不同类型的值。
+//类中可能会存储不同类型的数据（例如：bool, int, int64_t, string 等），
+//而这些 add 方法实现了根据输入数据类型将数据添加到相应的存储容器中的功能。
+
 void LongColumnVector::add(std::string &value) {
     std::transform(value.begin(), value.end(), value.begin(), ::tolower);
     if (value == "true") {
@@ -84,7 +92,7 @@ void LongColumnVector::add(int64_t value) {
         ensureSize(writeIndex * 2, true);
     }
     int index = writeIndex++;
-    if(isLong) {
+    if(isLong) {            //为啥只有他进行了额外设置
         longVector[index] = value;
     } else {
         intVector[index] = value;
@@ -104,6 +112,11 @@ void LongColumnVector::add(int value) {
     }
     isNull[index] = false;
 }
+
+/*扩展列的存储空间，以便能容纳更多的数据。
+此函数根据当前存储的 length（列的当前容量）与需要的 size（目标容量）来决定是否需要分配更多内存，
+并在必要时执行内存扩展。
+*/
 
 void LongColumnVector::ensureSize(uint64_t size, bool preserveData) {
     ColumnVector::ensureSize(size, preserveData);

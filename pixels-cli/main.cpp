@@ -36,30 +36,30 @@ int main () {
 
     while (true) {
         std::cout << "pixels> ";
-        if (!std::getline(std::cin, inputStr)) {
+        if (!std::getline(std::cin, inputStr)) {    //开始循环读取指令
             // in case of input from a file, exit at EOF
             std::cout << "Bye." << std::endl;
             break;
         }
-        boost::trim(inputStr);
+        boost::trim(inputStr);                      //去掉两边的空白字符
 
         if (inputStr.empty() || inputStr == ";") {
-                    continue;
+                    continue;                       //忽略空行与纯分号
         }
 
-        if (inputStr.back() == ';') {
+        if (inputStr.back() == ';') {               //去掉句尾分号
             inputStr.pop_back();
         }
 
         // process exit command
-        std::string lowerInputStr = boost::to_lower_copy(inputStr);
+        std::string lowerInputStr = boost::to_lower_copy(inputStr);     //转换为小写
         if (lowerInputStr == "exit" || lowerInputStr == "quit" || lowerInputStr == "-q") {
-            std::cout << "Bye." << std::endl;
+            std::cout << "Bye." << std::endl;                           //退出
             break;
         }
 
         // process help command
-        if (lowerInputStr == "help" || lowerInputStr == "-h") {
+        if (lowerInputStr == "help" || lowerInputStr == "-h") {         //帮助
             std::cout << "Supported commands:\n" <<
                         "LOAD\n" <<
                         "COMPACT\n" <<
@@ -73,7 +73,8 @@ int main () {
         }
 
         // Split input into tokens as char* array
-        std::istringstream iss(inputStr);
+        std::istringstream iss(inputStr);               //转换为输入流
+        // 把输入流中的东西按空格拆分存储到 token_strings
         std::vector<std::string> token_strings{std::istream_iterator<std::string>{iss}, std::istream_iterator<std::string>{}};
         std::vector<char*> argv;
         for (const auto& str : token_strings) {
@@ -87,21 +88,23 @@ int main () {
         boost::to_upper(command);
 
         if (command == "LOAD") {
-            bpo::options_description desc("Pixels ETL LOAD");
+            bpo::options_description desc("Pixels ETL LOAD");   //options_description 对象，用于描述可用的命令行选项
             desc.add_options()
                     ("help,h", "show this help message and exit")
                     ("origin,o", bpo::value<std::string>()->required(), "specify the path of original data files")
                     ("target,t", bpo::value<std::string>()->required(), "specify the path of target data files")
+                    //scheme已经输入了表的相关数据
                     ("schema,s", bpo::value<std::string>()->required(), "specify the schema of pixels")
                     ("row_num,n", bpo::value<int>()->required(), "specify the max number of rows to write in a file")
                     ("row_regex,r", bpo::value<std::string>()->required(), "specify the split regex of each row in a file")
                     ("encoding_level,e", bpo::value<int>()->default_value(2), "specify the encoding level for data loading")
                     ("nulls_padding,p", bpo::value<bool>()->default_value(false), "specify whether nulls padding is enabled");
 
-            bpo::variables_map vm;
+            bpo::variables_map vm;  //variables_map 对象 vm，用于存储解析后的命令行参数值。
             try {
                 bpo::store(bpo::parse_command_line(argv.size(), argv.data(), desc), vm);
                 if (vm.count("help")) {
+                    //检查用户是否请求帮助（--help），如果是，则打印帮助信息并跳过后续操作。
                     std::cout << desc << std::endl;
                     continue;
                 }
@@ -110,12 +113,14 @@ int main () {
                  std::cerr << "Error parsing options: " << e.what() << "\n";
             }
             LoadExecutor *loadExecutor = new LoadExecutor();
+
+            // Load操作执行器  调用执行操作
             loadExecutor->execute(vm, command);
 
             // free loadExecutor
             delete loadExecutor;
         }
-        else if (command == "QUERY") {
+        else if (command == "QUERY") {      //其余均未实现
             std::cout << "Not implemented yet." << std::endl;
         }
         else if (command == "COPY") {

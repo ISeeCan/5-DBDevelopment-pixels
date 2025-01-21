@@ -42,29 +42,42 @@ PixelsConsumer::PixelsConsumer(const std::vector <std::string> &queue, const Par
                                const std::vector <std::string> &loadedFiles)
                                : queue(queue), parameters(parameters), loadedFiles(loadedFiles) {}
 
+
+
 void PixelsConsumer::run() {
     std::cout << "Start PixelsConsumer" << std::endl;
-    std::string targetPath = parameters.getLoadingPath();
-    if (targetPath.back() != '/') {
+    std::string targetPath = parameters.getLoadingPath();   //获得路径
+    if (targetPath.back() != '/') {                         //添加斜杠
         targetPath += '/';
     }
-    std::string schemaStr = parameters.getSchema();
-    int maxRowNum = parameters.getMaxRowNum();
-    std::string regex = parameters.getRegex();
-    EncodingLevel encodingLevel = parameters.getEncodingLevel();
+    std::string schemaStr = parameters.getSchema();         //获取模式
+    int maxRowNum = parameters.getMaxRowNum();              //获取最大行数
+    std::string regex = parameters.getRegex();              //获取正则
+    EncodingLevel encodingLevel = parameters.getEncodingLevel();    //获取编码级别
     bool nullPadding = parameters.isNullsPadding();
     if (regex == "\\s") {
         regex = " ";
     }
 
+//验收前一天又改成从文件读配置了
+//虽然影响不大但是还得解决冲突...
     int pixelsStride = std::stoi(ConfigFactory::Instance().getProperty("pixel.stride"));
     int rowGroupSize = std::stoi(ConfigFactory::Instance().getProperty("row.group.size"));
     int64_t blockSize = std::stoll(ConfigFactory::Instance().getProperty("block.size"));
+
+//    int pixelsStride = std::stoi(ConfigFactory::Instance().getProperty("pixel.stride"));
+//    int rowGroupSize = std::stoi(ConfigFactory::Instance().getProperty("row.group.size"));
+//    int64_t blockSize = std::stoll(ConfigFactory::Instance().getProperty("block.size"));
+//     int pixelsStride = 2;       //像素步幅
+//     int rowGroupSize = 100;     //行大小
+//     int64_t blockSize = 1024;   //块大小
+
+
     short replication = static_cast<short>(std::stoi(ConfigFactory::Instance().getProperty("block.replication")));
 
     std::shared_ptr<TypeDescription> schema = TypeDescription::fromString(schemaStr);
     std::shared_ptr<VectorizedRowBatch> rowBatch = schema->createRowBatch(pixelsStride);
-    std::vector<std::shared_ptr<ColumnVector>> columnVectors = rowBatch->cols;
+    std::vector<std::shared_ptr<ColumnVector>> columnVectors = rowBatch->cols;  //不知道是个啥
 
     std::ifstream reader;
     std::string line;
@@ -76,18 +89,18 @@ void PixelsConsumer::run() {
     int rowCounter = 0;
 
     int count = 0;
-    for (std::string originalFilePath : queue) {
+    for (std::string originalFilePath : queue) {    //遍历路径
         if (!originalFilePath.empty()) {
             ++count;
             LocalFS originStorage;
             reader = originStorage.open(originalFilePath);
-            if (!reader.is_open()) {
+            if (!reader.is_open()) {        //打开文件
                 std::cerr << "Error opening file: " << originalFilePath << std::endl;
                 continue;
             }
             std::cout << "loading data from: " << originalFilePath << std::endl;
 
-            while (std::getline(reader, line)) {
+            while (std::getline(reader, line)) {    //逐行读取
                 if (line.empty()) {
                     std::cout << "got empty line" << std::endl;
                     continue;

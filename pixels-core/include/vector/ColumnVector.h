@@ -35,7 +35,7 @@
  * structure that is used in the inner loop of query execution.
  */
 
-class ColumnVector {
+class ColumnVector {    //列容器  实现了long columnVector以供参考
 public:
     /**
       * length is the capacity, i.e., maximum number of values, of this column vector
