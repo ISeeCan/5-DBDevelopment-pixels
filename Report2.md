@@ -147,7 +147,49 @@ int DateColumnWriter::write(std::shared_ptr<ColumnVector> vector, int size)
 }
 ```
 
- 任务三
-实现写入文件可以被duckdb通过pixels正确读取，相关的测试文件可以参考pixels-duckdb
- /examples/pixels-example, 也可以直接运行 duckdb 进行测试, 因为编译 duckbd 时，已经将 pixels
-extension 链接了进去
+writer函数首先将传入的 vector 转换为 DateColumnVector 类型。如果转换失败，抛出 std::invalid_argument 异常。然后逐步写入数据，并使用`while ((curPixelIsNullIndex + nextPartLength) >= pixelStride)`进行额外判断，即在每个像素数据量超过 pixelStride 时，进行分块写入；即，使用writeCurPartTime进行分行写入，具体而言，该函数依照pixels文件格式进行写入，同时根据值是否为null进行判定与日期写入，最后更新索引以便下次写入。
+
+``` cpp
+void DateColumnWriter::writeCurPartTime(std::shared_ptr<ColumnVector> columnVector, int *values, int curPartLength, int curPartOffset)
+{
+    for (int i = 0; i < curPartLength; i++)
+    {
+        curPixelEleIndex++;
+        if (columnVector->isNull[i + curPartOffset])
+        {
+            hasNull = true;
+            if (nullsPadding)
+            {
+                // padding 0 for nulls
+                curPixelVector[curPixelVectorIndex++] = 0;
+            }
+        }
+        else
+        {
+            curPixelVector[curPixelVectorIndex++] = values[i + curPartOffset];
+        }
+    }
+    std::copy(columnVector->isNull + curPartOffset, columnVector->isNull + curPartOffset + curPartLength, isNull.begin() + curPixelIsNullIndex);
+    curPixelIsNullIndex += curPartLength;
+}
+```
+
+其余函数起了辅助作用，相对而言不那么核心，主要涉及编码，新建pixelsWriter等内容，为控制报告篇幅，详见github代码吧。
+
+##### 任务三 实现duckdb读取输入
+
+实现写入文件可以被duckdb通过pixels正确读取，相关的测试文件可以参考pixels-duckdb/examples/pixels-example, 也可以直接运行 duckdb 进行测试, 因为编译 duckbd 时，已经将 pixelsextension 链接了进去
+
+从github的duckdb的release界面获取并安装[duckdb](https://github.com/duckdb/duckdb/releases)，因为仓库已经实现了[pixels-extesion](https://github.com/pixelsdb/pixels/blob/55fd8a5265e5f61542c1c2b89ed8c3a2cf8dc431/cpp/pixels-duckdb/pixels_extension.cpp#L4)，所以可以直接运行
+
+#### 实验结果
+
+<div style="text-align: center;">
+    <img src="./ReportImg/out1.png" alt="结果1" style="width: 600px; height: auto;" />
+</div>
+
+<div style="text-align: center;">
+    <img src="./ReportImg/out2.png" alt="结果2" style="width: 600px; height: auto;" />
+</div>
+
+**最后，感谢老师和助教这一学期的悉心教导！**
