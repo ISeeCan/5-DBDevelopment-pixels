@@ -37,7 +37,12 @@ cmake-build-*/
 .idea/
 .vscode/
 
+
+
+*.zip
+
 # Test Bench
 pixels-tpch-1.zip
 *.pxl
 pixels-duckdb
+
