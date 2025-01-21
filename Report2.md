@@ -189,7 +189,7 @@ void DateColumnWriter::writeCurPartTime(std::shared_ptr<ColumnVector> columnVect
 </div>
 
 <div style="text-align: center;">
-    <img src="./ReportImg/out2.png" alt="结果2" style="width: 600px; height: auto;" />
+    <img src="./ReportImg/out2.jpg" alt="结果2" style="width: 600px; height: auto;" />
 </div>
 
 **最后，感谢老师和助教这一学期的悉心教导！**
