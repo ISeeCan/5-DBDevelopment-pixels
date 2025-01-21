@@ -34,7 +34,7 @@ int DateColumnWriter::write(std::shared_ptr<ColumnVector> vector, int size)
     std::cout << "DateColumnWriter::write" << std::endl;
 
     auto columnVector = std::static_pointer_cast<DateColumnVector>(vector);
-    if (!columnVector)
+    if (!columnVector)      //类型转换
     {
         throw std::invalid_argument("Invalid vector type");
     }
